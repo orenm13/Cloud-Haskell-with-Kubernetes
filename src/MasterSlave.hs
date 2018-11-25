@@ -19,7 +19,9 @@ slave (master, workQueue) = do
 
             -- If there is work, do it, otherwise terminate
             receiveWait
-                [ match $ \n  -> send master (numPrimeFactors n) >> go us
+                [ match $ \n  -> do
+                    calculatedFactors <- liftIO $ numPrimeFactors n
+                    send master calculatedFactors >> go us
                 , match $ \() -> return ()
                 ]
 

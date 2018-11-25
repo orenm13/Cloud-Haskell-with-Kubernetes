@@ -17,5 +17,5 @@ factors qs@(p:ps) n
 primeFactors :: Integer -> [Integer]
 primeFactors = factors primes
 
-numPrimeFactors :: Integer -> Integer
-numPrimeFactors = fromIntegral . length . primeFactors
+numPrimeFactors :: Integer -> IO Integer
+numPrimeFactors = return . fromIntegral . length . primeFactors
