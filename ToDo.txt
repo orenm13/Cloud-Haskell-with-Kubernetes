@@ -1,0 +1,5 @@
+ - clean code
+ - seek for examples
+skeleton + match as Atidot project in the repo (werror, wall, etc)
+specify type for message that activates calc process
+get process to run and commant that runs on it
