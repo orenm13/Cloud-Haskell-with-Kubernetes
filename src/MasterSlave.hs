@@ -6,32 +6,22 @@ module MasterSlave where
 import Control.Monad
 import Control.Distributed.Process
 import Control.Distributed.Process.Closure
-import Types
+import Utils
 
-primes :: [Integer]
-primes = primes' (2:[3,5..])
-  where
-    primes' (x:xs) = x : primes' (filter (notDivisorOf x) xs)
-    notDivisorOf d n = n `mod` d /= 0
+slave :: (ProcessId, ProcessId) -> Process ()
+slave (master, workQueue) = do
+    us <- getSelfPid
+    go us
+    where
+        go us = do
+            -- Ask the queue for work
+            send workQueue us
 
-factors :: [Integer] -> Integer -> [Integer]
-factors qs@(p:ps) n
-    | n <= 1 = []
-    | m == 0 = p : factors qs d
-    | otherwise = factors ps n
-  where
-    (d,m) = n `divMod` p
-
-primeFactors :: Integer -> [Integer]
-primeFactors = factors primes
-
-numPrimeFactors :: Integer -> Integer
-numPrimeFactors = fromIntegral . length . primeFactors
-
---------------------------------------------------------------------
-
-slave :: (ProcessId, Integer) -> Process ()
-slave (pid, n) = send pid (numPrimeFactors n)
+            -- If there is work, do it, otherwise terminate
+            receiveWait
+                [ match $ \n  -> send master (numPrimeFactors n) >> go us
+                , match $ \() -> return ()
+                ]
 
 remotable ['slave]
 
@@ -45,26 +35,23 @@ sumIntegers = go 0
             m <- expect
             go (acc + m) (n - 1)
 
-master :: Integer -> SpawnStrategy -> [NodeId] -> Process Integer
-master n spawnStrategy slaves = do
+master :: Integer -> [NodeId] -> Process Integer
+master n slaves = do
     us <- getSelfPid
 
-    -- Distribute 1 .. n amongst the slave processes
-    spawnLocal $ case spawnStrategy of
-        SpawnSyncWithReconnect ->
-            forM_ (zip [1 .. n] (cycle slaves)) $ \(m, there) -> do
-                them <- spawn there ($(mkClosure 'slave) (us, m))
-                reconnect them
-        SpawnSyncNoReconnect ->
-            forM_ (zip [1 .. n] (cycle slaves)) $ \(m, there) -> do
-                _them <- spawn there ($(mkClosure 'slave) (us, m))
-                return ()
-        SpawnAsync ->
-            forM_ (zip [1 .. n] (cycle slaves)) $ \(m, there) -> do
-                spawnAsync there ($(mkClosure 'slave) (us, m))
-                _ <- expectTimeout 0 :: Process (Maybe DidSpawn)
-                return ()
+    workQueue <- spawnLocal $ do
+        -- Reply with the next bit of work to be done
+        forM_ [1 .. n] $ \m -> do
+            them <- expect
+            send them m
+
+        -- Once all the work is done, tell the slaves to terminate
+        forever $ do
+            pid <- expect
+            send pid ()
+
+    -- Start slave processes
+    forM_ slaves $ \nid -> spawn nid ($(mkClosure 'slave) (us, workQueue))
 
     -- Wait for the result
     sumIntegers (fromIntegral n)
-

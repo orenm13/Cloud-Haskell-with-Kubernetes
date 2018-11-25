@@ -6,21 +6,19 @@ import Control.Distributed.Process
 import Control.Distributed.Process.Node (initRemoteTable)
 import Control.Distributed.Process.Backend.SimpleLocalnet
 
-import qualified MasterSlave
+import qualified MasterSlave as MS
 
 rtable :: RemoteTable
-rtable = MasterSlave.__remoteTable initRemoteTable
+rtable = MS.__remoteTable initRemoteTable
 
 main :: IO ()
 main = do
     args <- getArgs
     case args of
-        ["master", host, port, strN, strSpawnStrategy] -> do
+        ["master", host, port, n] -> do
             backend <- initializeBackend host port rtable
-            n             <- evaluate $ read strN
-            spawnStrategy <- evaluate $ read strSpawnStrategy
             startMaster backend $ \slaves -> do
-                result <- MasterSlave.master n spawnStrategy slaves
+                result <- MS.master (read n) slaves
                 liftIO $ print result
         ["slave", host, port] -> do
             backend <- initializeBackend host port rtable
