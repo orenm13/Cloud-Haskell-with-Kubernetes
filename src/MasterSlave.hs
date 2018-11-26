@@ -15,8 +15,8 @@ instance MonadLogger Process where
     monadLoggerLog loc logSource logLevel msg
         = liftIO $ defaultSyslogOutput loc logSource logLevel (toLogStr msg)
 
-slave :: (ProcessId, ProcessId) -> Process ()
-slave (master, workQueue) = do
+worker :: (ProcessId, ProcessId) -> Process ()
+worker (builder, workQueue) = do
     us <- getSelfPid
     go us
     where
@@ -28,12 +28,12 @@ slave (master, workQueue) = do
             receiveWait
                 [ match $ \n  -> do
                     calculatedFactors <- liftIO $ numPrimeFactors n
-                    send master calculatedFactors >> go us
+                    send builder calculatedFactors >> go us
                     $(logDebugSH) calculatedFactors
                 , match $ \() -> return ()
                 ]
 
-remotable ['slave]
+remotable ['worker]
 
 -- | Wait for n integers and sum them all up
 sumIntegers :: Int -> Process Integer
@@ -45,8 +45,8 @@ sumIntegers = go 0
             m <- expect
             go (acc + m) (n - 1)
 
-master :: (Integer, Integer) -> [NodeId] -> Process Integer
-master (n, m) slaves = do
+builder :: (Integer, Integer) -> [NodeId] -> Process Integer
+builder (n, m) slaves = do
     -- get a random number in the given range
     number <- liftIO $ randomRIO (n, m)
     $(logDebugSH) number
@@ -66,8 +66,8 @@ master (n, m) slaves = do
 
     $(logDebugSH) workQueue
 
-    -- Start slave processes
-    forM_ slaves $ \nid -> spawn nid ($(mkClosure 'slave) (us, workQueue))
+    -- Start worker processes
+    forM_ slaves $ \nid -> spawn nid ($(mkClosure 'worker) (us, workQueue))
 
     -- Wait for the result
     sumIntegers (fromIntegral number)

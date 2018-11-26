@@ -17,13 +17,13 @@ main :: IO ()
 main = do
     args <- getArgs
     case args of
-        ["master", host, port, n, m] -> do
+        ["builder", host, port, n, m] -> do
             backend <- initializeBackend host port rtable
             startMaster backend $ \slaves -> forever $ do
-                result <- MS.master (read n, read m) slaves
+                result <- MS.builder (read n, read m) slaves
                 liftIO $ print result
                 liftIO $ threadDelay (10 ^ 6)
-        ["slave", host, port] -> do
+        ["worker", host, port] -> do
             backend <- initializeBackend host port rtable
             startSlave backend
         _ -> putStrLn "Error: Bad Args"
