@@ -3,10 +3,17 @@
 
 module MasterSlave where
 
-import Control.Monad
-import Control.Distributed.Process
-import Control.Distributed.Process.Closure
+import "base"                Control.Monad
+import "distributed-process" Control.Distributed.Process
+import "distributed-process" Control.Distributed.Process.Closure
+import "monad-logger"        Control.Monad.Logger
+import "monad-logger-syslog" System.Log.MonadLogger.Syslog
+import "random"              System.Random (randomRIO)
 import Utils
+
+instance MonadLogger Process where
+    monadLoggerLog loc logSource logLevel msg
+        = liftIO $ defaultSyslogOutput loc logSource logLevel (toLogStr msg)
 
 slave :: (ProcessId, ProcessId) -> Process ()
 slave (master, workQueue) = do
@@ -22,6 +29,7 @@ slave (master, workQueue) = do
                 [ match $ \n  -> do
                     calculatedFactors <- liftIO $ numPrimeFactors n
                     send master calculatedFactors >> go us
+                    $(logDebugSH) calculatedFactors
                 , match $ \() -> return ()
                 ]
 
@@ -37,23 +45,29 @@ sumIntegers = go 0
             m <- expect
             go (acc + m) (n - 1)
 
-master :: Integer -> [NodeId] -> Process Integer
-master n slaves = do
+master :: (Integer, Integer) -> [NodeId] -> Process Integer
+master (n, m) slaves = do
+    -- get a random number in the given range
+    number <- liftIO $ randomRIO (n, m)
+    $(logDebugSH) number
+
     us <- getSelfPid
 
     workQueue <- spawnLocal $ do
         -- Reply with the next bit of work to be done
-        forM_ [1 .. n] $ \m -> do
+        forM_ [1 .. number] $ \k -> do
             them <- expect
-            send them m
+            send them k
 
         -- Once all the work is done, tell the slaves to terminate
         forever $ do
             pid <- expect
             send pid ()
 
+    $(logDebugSH) workQueue
+
     -- Start slave processes
     forM_ slaves $ \nid -> spawn nid ($(mkClosure 'slave) (us, workQueue))
 
     -- Wait for the result
-    sumIntegers (fromIntegral n)
+    sumIntegers (fromIntegral number)
