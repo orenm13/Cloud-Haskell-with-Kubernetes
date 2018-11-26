@@ -16,13 +16,13 @@ instance MonadLogger Process where
         = liftIO $ defaultSyslogOutput loc logSource logLevel (toLogStr msg)
 
 worker :: (ProcessId, ProcessId) -> Process ()
-worker (builder, workQueue) = do
+worker (builder, workQ) = do
     us <- getSelfPid
     go us
     where
         go us = do
             -- Ask the queue for work
-            send workQueue us
+            send workQ us
 
             -- If there is work, do it, otherwise terminate
             receiveWait
@@ -47,27 +47,33 @@ sumIntegers = go 0
 
 builder :: (Integer, Integer) -> [NodeId] -> Process Integer
 builder (n, m) slaves = do
+
     -- get a random number in the given range
     number <- liftIO $ randomRIO (n, m)
+    workQ <- workQueue
+    send workQ number
     $(logDebugSH) number
 
     us <- getSelfPid
 
-    workQueue <- spawnLocal $ do
-        -- Reply with the next bit of work to be done
-        forM_ [1 .. number] $ \k -> do
-            them <- expect
-            send them k
-
-        -- Once all the work is done, tell the slaves to terminate
-        forever $ do
-            pid <- expect
-            send pid ()
-
-    $(logDebugSH) workQueue
+    $(logDebugSH) workQ
 
     -- Start worker processes
-    forM_ slaves $ \nid -> spawn nid ($(mkClosure 'worker) (us, workQueue))
+    forM_ slaves $ \nid -> spawn nid ($(mkClosure 'worker) (us, workQ))
 
     -- Wait for the result
     sumIntegers (fromIntegral number)
+
+
+workQueue :: Process ProcessId
+workQueue = spawnLocal $ do
+    n <- expect :: Process Integer
+    -- Reply with the next bit of work to be done
+    forM_ [1 .. n] $ \k -> do
+        them <- expect :: Process ProcessId
+        send them k
+
+    -- Once all the work is done, tell the slaves to terminate
+    forever $ do
+        them <- expect :: Process ProcessId
+        send them ()
