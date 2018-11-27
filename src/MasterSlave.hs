@@ -30,6 +30,7 @@ worker (builder, workQueue) = do
                     calculatedFactors <- liftIO $ numPrimeFactors n
                     send builder calculatedFactors >> go us
                     $(logDebugSH) calculatedFactors
+                    $(logDebugSH) us
                 , match $ \() -> return ()
                 ]
 
@@ -52,6 +53,7 @@ builder (n, m) slaves = do
     $(logDebugSH) number
 
     us <- getSelfPid
+    $(logDebugSH) us
 
     workQueue <- spawnLocal $ do
         -- Reply with the next bit of work to be done
