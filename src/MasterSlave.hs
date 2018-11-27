@@ -9,7 +9,7 @@ import "distributed-process" Control.Distributed.Process.Closure
 import "monad-logger"        Control.Monad.Logger
 import "monad-logger-syslog" System.Log.MonadLogger.Syslog
 import "random"              System.Random (randomRIO)
-import Utils
+import                       Utils
 
 instance MonadLogger Process where
     monadLoggerLog loc logSource logLevel msg
@@ -29,8 +29,10 @@ worker (builder, workQueue) = do
                 [ match $ \n  -> do
                     calculatedFactors <- liftIO $ numPrimeFactors n
                     send builder calculatedFactors >> go us
+
                     $(logDebugSH) calculatedFactors
                     $(logDebugSH) us
+
                 , match $ \() -> return ()
                 ]
 
@@ -63,8 +65,8 @@ builder (n, m) slaves = do
 
         -- Once all the work is done, tell the slaves to terminate
         forever $ do
-            pid <- expect
-            send pid ()
+            them <- expect
+            send them ()
 
     $(logDebugSH) workQueue
 
