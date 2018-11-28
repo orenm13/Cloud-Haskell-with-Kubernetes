@@ -15,26 +15,9 @@ instance MonadLogger Process where
     monadLoggerLog loc logSource logLevel msg
         = liftIO $ defaultSyslogOutput loc logSource logLevel (toLogStr msg)
 
-worker :: (ProcessId, ProcessId) -> Process ()
-worker (builder, workQueue) = do
-    us <- getSelfPid
-    go us
-    where
-        go us = do
-            -- Ask the queue for work
-            send workQueue us
-
-            -- If there is work, do it, otherwise terminate
-            receiveWait
-                [ match $ \n  -> do
-                    calculatedFactors <- liftIO $ numPrimeFactors n
-                    send builder calculatedFactors >> go us
-
-                    $(logDebugSH) calculatedFactors
-                    $(logDebugSH) us
-
-                , match $ \() -> return ()
-                ]
+worker :: (ProcessId, Integer) -> Process ()
+worker (pid, n) = send pid (numPrimeFactors n)
+                -- (logDebugSH) (numPrimeFactors n)
 
 remotable ['worker]
 
@@ -57,21 +40,12 @@ builder (n, m) slaves = do
     us <- getSelfPid
     $(logDebugSH) us
 
-    workQueue <- spawnLocal $ do
-        -- Reply with the next bit of work to be done
-        forM_ [1 .. number] $ \k -> do
-            them <- expect
-            send them k
-
-        -- Once all the work is done, tell the slaves to terminate
-        forever $ do
-            them <- expect
-            send them ()
-
-    $(logDebugSH) workQueue
-
-    -- Start worker processes
-    forM_ slaves $ \nid -> spawn nid ($(mkClosure 'worker) (us, workQueue))
+    workQueue <- spawnLocal $
+        -- Reply with the next bit of work to be done and reconnect in the end
+        forM_ (zip [1 .. n] (cycle slaves)) $ \(m, there) -> do
+            them <- spawn there ($(mkClosure 'slave) (us, m))
+            $(logDebugSH) them
+            reconnect them
 
     -- Wait for the result
     sumIntegers (fromIntegral number)
