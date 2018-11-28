@@ -16,8 +16,10 @@ instance MonadLogger Process where
         = liftIO $ defaultSyslogOutput loc logSource logLevel (toLogStr msg)
 
 worker :: (ProcessId, Integer) -> Process ()
-worker (pid, n) = send pid (numPrimeFactors n)
-                -- (logDebugSH) (numPrimeFactors n)
+worker (pid, n) = do
+    nPrimeFactors <- liftIO $ numPrimeFactors n
+    $(logDebugSH) nPrimeFactors
+    send pid nPrimeFactors
 
 remotable ['worker]
 
@@ -40,12 +42,11 @@ builder (n, m) slaves = do
     us <- getSelfPid
     $(logDebugSH) us
 
-    workQueue <- spawnLocal $
-        -- Reply with the next bit of work to be done and reconnect in the end
-        forM_ (zip [1 .. n] (cycle slaves)) $ \(m, there) -> do
-            them <- spawn there ($(mkClosure 'slave) (us, m))
-            $(logDebugSH) them
-            reconnect them
+    -- Reply with the next bit of work to be done and reconnect in the end
+    forM_ (zip [1 .. number] (cycle slaves)) $ \(k, there) -> do
+        them <- spawn there ($(mkClosure 'worker) (us, k))
+        $(logDebugSH) them
+        return () -- reconnect them
 
     -- Wait for the result
     sumIntegers (fromIntegral number)
