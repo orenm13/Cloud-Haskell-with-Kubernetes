@@ -46,7 +46,7 @@ builder (n, m) slaves = do
     forM_ (zip [1 .. number] (cycle slaves)) $ \(k, there) -> do
         them <- spawn there ($(mkClosure 'worker) (us, k))
         $(logDebugSH) them
-        return () -- reconnect them
+        reconnect them
 
     -- Wait for the result
     sumIntegers (fromIntegral number)
