@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: test-worker
+  labels:
+    purpose: demonstrate-worker
+spec:
+  containers:
+  - name: cloud-haskell-test
+    image: orenm13/bobo
+    command: ["cloud-haskell-test-exe","worker","localhost", "8080"]
+    # args: []
+  restartPolicy: OnFailure
