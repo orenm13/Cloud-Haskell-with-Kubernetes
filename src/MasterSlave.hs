@@ -18,7 +18,7 @@ instance MonadLogger Process where
 worker :: (ProcessId, Integer) -> Process ()
 worker (pid, n) = do
     nPrimeFactors <- liftIO $ numPrimeFactors n
-    $(logDebugSH) nPrimeFactors
+    -- $(logDebugSH) nPrimeFactors
     send pid nPrimeFactors
 
 remotable ['worker]
@@ -37,16 +37,18 @@ builder :: (Integer, Integer) -> [NodeId] -> Process Integer
 builder (n, m) slaves = do
     -- get a random number in the given range
     number <- liftIO $ randomRIO (n, m)
-    $(logDebugSH) number
+    -- $(logDebugSH) number
 
     us <- getSelfPid
-    $(logDebugSH) us
+    -- $(logDebugSH) us
 
     -- Reply with the next bit of work to be done and reconnect in the end
     forM_ (zip [1 .. number] (cycle slaves)) $ \(k, there) -> do
         them <- spawn there ($(mkClosure 'worker) (us, k))
-        $(logDebugSH) them
+        -- $(logDebugSH) them
         reconnect them
 
     -- Wait for the result
-    sumIntegers (fromIntegral number)
+    result <- sumIntegers (fromIntegral number)
+    $(logDebugSH) result
+    return result

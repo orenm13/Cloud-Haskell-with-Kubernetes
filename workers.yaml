@@ -1,0 +1,38 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: workers-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: work-test
+  template:
+    metadata:
+      name: workers-test
+      labels:
+        app: work-test
+        purpose: demonstrate-workers-on-kube
+    spec:
+      containers:
+      - name: cloud-haskell-test-workers
+        image: orenm13/prime_factors
+        command: ["cloud-haskell-test-exe", "worker", "localhost", "8080"]
+        ports:
+        - containerPort: 3001
+          name: worker-port
+        # args: []
+      restartPolicy: Always
+
+---
+kind: Service
+apiVersion: v1
+metadata:
+  name: worker-service
+spec:
+  selector:
+    app: work-test
+  ports:
+  - protocol: TCP
+    port: 3001
+  type: ClusterIP

@@ -1,0 +1,38 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: builders-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: build-test
+  template:
+    metadata:
+      name: builders-test
+      labels:
+        app: build-test
+        purpose: demonstrate-builders-on-kube
+    spec:
+      containers:
+      - name: cloud-haskell-test-builders
+        image: orenm13/prime_factors
+        command: ["cloud-haskell-test-exe", "builder", "localhost", "8081", "40", "140"]
+        ports:
+        - containerPort: 3000
+          name: build-data
+        # args: []
+      restartPolicy: Always
+
+---
+kind: Service
+apiVersion: v1
+metadata:
+  name: builder-service
+spec:
+  selector:
+    app: build-test
+  ports:
+  - protocol: TCP
+    port: 3000
+  type: ClusterIP
