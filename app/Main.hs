@@ -1,12 +1,15 @@
 module Main where
 
 import Control.Monad      (forever)
+import System.IO
 import Control.Concurrent (threadDelay)
 import System.Environment (getArgs)
 import Control.Exception  (evaluate)
 import Control.Distributed.Process
-import Control.Distributed.Process.Node (initRemoteTable)
+import Control.Distributed.Process.Node (initRemoteTable, runProcess)
 import Control.Distributed.Process.Backend.SimpleLocalnet
+import System.Process     (readCreateProcess, shell)
+import Data.List.Split    (splitOn)
 
 import qualified MasterSlave as MS
 
@@ -17,13 +20,17 @@ main :: IO ()
 main = do
     args <- getArgs
     case args of
-        ["builder", host, port, n, m] -> do
-            backend <- initializeBackend host port rtable
+        ["builder", port, n, m] -> do
+            rawHostIP <- readCreateProcess (shell "hostname -I") ""
+            let hostIP = head $ splitOn " " rawHostIP
+            hPrint stderr hostIP
+            backend <- initializeBackend hostIP port rtable
             startMaster backend $ \slaves -> forever $ do
                 result <- MS.builder (read n, read m) slaves
-                liftIO $ print result
+                liftIO $ hPrint stderr result
                 liftIO $ threadDelay (10 ^ 6)
-        ["worker", host, port] -> do
-            backend <- initializeBackend host port rtable
+        ["worker", port] -> do
+            hostIP <- readCreateProcess (shell "hostname -I") ""
+            backend <- initializeBackend hostIP port rtable
             startSlave backend
-        _ -> putStrLn "Error: Bad Args"
+        _ -> hPrint stderr "Error, Bad Args"

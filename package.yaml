@@ -26,6 +26,8 @@ dependencies:
 - monad-logger
 - monad-logger-syslog
 - random
+- process
+- split
 
 library:
   source-dirs: src

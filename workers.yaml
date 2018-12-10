@@ -16,12 +16,11 @@ spec:
     spec:
       containers:
       - name: cloud-haskell-test-workers
-        image: orenm13/prime_factors
-        command: ["cloud-haskell-test-exe", "worker", "localhost", "8080"]
+        image: orenm13/test1
+        command: ["cloud-haskell-test-exe", "worker", "8081"]
         ports:
         - containerPort: 3001
           name: worker-port
-        # args: []
       restartPolicy: Always
 
 ---

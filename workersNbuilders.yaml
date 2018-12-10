@@ -1,0 +1,52 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: workers-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: work-test
+  template:
+    metadata:
+      name: workers-test
+      labels:
+        app: work-test
+        purpose: demonstrate-workers-on-kube
+    spec:
+      containers:
+      - name: cloud-haskell-test-workers
+        image: orenm13/test1
+        command: ["cloud-haskell-test-exe", "worker", "localhost", "8080"]
+        ports:
+        - containerPort: 3001
+          name: worker-port
+        # args: []
+      restartPolicy: Always
+
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: builders-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: build-test
+  template:
+    metadata:
+      name: builders-test
+      labels:
+        app: build-test
+        purpose: demonstrate-builders-on-kube
+    spec:
+      containers:
+      - name: cloud-haskell-test-builders
+        image: orenm13/test1
+        command: ["cloud-haskell-test-exe", "builder", "localhost", "8081", "40", "140"]
+        ports:
+        - containerPort: 3000
+          name: build-data
+        # args: []
+      restartPolicy: Always

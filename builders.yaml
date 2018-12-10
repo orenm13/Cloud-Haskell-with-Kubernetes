@@ -16,15 +16,13 @@ spec:
     spec:
       containers:
       - name: cloud-haskell-test-builders
-        image: orenm13/prime_factors
-        command: ["cloud-haskell-test-exe", "builder", "localhost", "8081", "40", "140"]
+        image: orenm13/test1
+        command: ["cloud-haskell-test-exe", "builder", "8080", "40", "140"]
+        # args: [hostname, -I]
         ports:
         - containerPort: 3000
           name: build-data
-        # args: []
-      restartPolicy: Always
 
----
 kind: Service
 apiVersion: v1
 metadata:
