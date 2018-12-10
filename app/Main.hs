@@ -24,6 +24,7 @@ main = do
             rawHostIP <- readCreateProcess (shell "hostname -I") ""
             let hostIP = head $ splitOn " " rawHostIP
             hPrint stderr hostIP
+            --------
             backend <- initializeBackend hostIP port rtable
             startMaster backend $ \slaves -> forever $ do
                 result <- MS.builder (read n, read m) slaves
