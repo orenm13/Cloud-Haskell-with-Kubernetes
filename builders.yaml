@@ -22,16 +22,3 @@ spec:
         ports:
         - containerPort: 3000
           name: build-data
-
----
-kind: Service
-apiVersion: v1
-metadata:
-  name: builder-service
-spec:
-  selector:
-    app: build-test
-  ports:
-  - protocol: TCP
-    port: 3000
-  type: ClusterIP

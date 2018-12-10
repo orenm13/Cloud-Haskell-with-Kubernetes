@@ -21,16 +21,3 @@ spec:
         ports:
         - containerPort: 3001
           name: worker-port
-
----
-kind: Service
-apiVersion: v1
-metadata:
-  name: worker-service
-spec:
-  selector:
-    app: work-test
-  ports:
-  - protocol: TCP
-    port: 3001
-  type: ClusterIP
