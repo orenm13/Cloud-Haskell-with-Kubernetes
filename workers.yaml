@@ -18,6 +18,3 @@ spec:
       - name: cloud-haskell-test-workers
         image: orenm13/test1
         command: ["cloud-haskell-test-exe", "worker", "8081"]
-        ports:
-        - containerPort: 3001
-          name: worker-port

@@ -19,6 +19,3 @@ spec:
         image: orenm13/test1
         command: ["cloud-haskell-test-exe", "builder", "8080", "40", "140"]
         # args: [hostname, -I]
-        ports:
-        - containerPort: 3000
-          name: build-data
