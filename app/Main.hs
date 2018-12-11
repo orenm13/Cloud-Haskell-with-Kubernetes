@@ -1,15 +1,15 @@
 module Main where
 
-import Control.Monad      (forever)
-import System.IO
-import Control.Concurrent (threadDelay)
-import System.Environment (getArgs)
-import Control.Exception  (evaluate)
+import System.IO                        (stderr, hPrint)
+import System.Environment               (getArgs)
+import System.Process                   (readCreateProcess, shell)
+import Data.List.Split                  (splitOn)
+import Control.Monad                    (forever)
+import Control.Concurrent               (threadDelay)
+import Control.Exception                (evaluate)
 import Control.Distributed.Process
 import Control.Distributed.Process.Node (initRemoteTable, runProcess)
 import Control.Distributed.Process.Backend.SimpleLocalnet
-import System.Process     (readCreateProcess, shell)
-import Data.List.Split    (splitOn)
 
 import qualified MasterSlave as MS
 

@@ -12,7 +12,7 @@ import "monad-logger-syslog" System.Log.MonadLogger.Syslog
 import "random"              System.Random (randomRIO)
 import                       Utils
 
-defaultStderrOutput a b c d = print $ defaultLogStr a b c d
+defaultStderrOutput a b c d = hPrint stderr $ defaultLogStr a b c d
 
 instance MonadLogger Process where
     monadLoggerLog loc logSource logLevel msg
@@ -46,9 +46,8 @@ builder (n, m) slaves = do
     -- Reply with the next bit of work to be done and reconnect in the end
     forM_ (zip [1 .. number] (cycle slaves)) $ \(k, there) -> do
         them <- spawn there ($(mkClosure 'worker) (us, k))
+        $(logDebugSH) (k, there)
         reconnect them
 
     -- Wait for the result
-    result <- sumIntegers (fromIntegral number)
-    $(logDebugSH) result
-    return result
+    sumIntegers (fromIntegral number)
