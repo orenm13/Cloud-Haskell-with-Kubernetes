@@ -28,6 +28,7 @@ dependencies:
 - random
 - process
 - split
+- timeit
 
 library:
   source-dirs: src
