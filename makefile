@@ -1,8 +1,8 @@
 docker:
 	stack install --fast
-	docker build -t bo .
-	docker tag bo orenm13/test1
-	docker push orenm13/test1
+	docker build -t test .
+	docker tag test faminiacr.azurecr.io/ch_test
+	docker push faminiacr.azurecr.io/ch_test
 
 kube:
 	kubectl apply -f workers.yaml

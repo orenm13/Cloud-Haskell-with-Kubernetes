@@ -16,6 +16,9 @@ spec:
     spec:
       containers:
       - name: cloud-haskell-test-builders
-        image: orenm13/test1
+        image: faminiacr.azurecr.io/ch_test
         command: ["cloud-haskell-test-exe", "builder", "8080", "40", "140"]
         # args: [hostname, -I]
+      imagePullSecrets:
+      - name: registrykey
+

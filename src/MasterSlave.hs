@@ -46,7 +46,7 @@ builder (n, m) slaves = do
     -- Reply with the next bit of work to be done and reconnect in the end
     forM_ (zip [1 .. number] (cycle slaves)) $ \(k, there) -> do
         them <- spawn there ($(mkClosure 'worker) (us, k))
-        $(logDebugSH) (k, there)
+        -- $(logDebugSH) (k, there)
         reconnect them
 
     -- Wait for the result
