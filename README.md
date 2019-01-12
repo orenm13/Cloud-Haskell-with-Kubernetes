@@ -4,6 +4,22 @@ This example was made to test common functions and utilities of both Cloud Haske
 
 [Prime Factors Example](https://github.com/oren-atidot/cloud_haskell_test)
 
+### Build
+Before you stert you need to check that you have the following installed: GHC, Stack (Haskell), Docker, VirtualBox, Minikube, Kubectl.
+for further installation instructions you can check in google, matching this to the relevant OS.
+
+You can use the `makefile` to create docker image and Kubernetes deployments or use the same docker/Kubernetes commands Manually
+
+To check if Kubernetes runs properly I recommend using
+
+```
+kubectl get pods
+```
+and
+```
+kubectl logs <pod_name>
+```
+
 ### Cloud Haskell
 The Cloud Haskell part on the example is the code you can find `app/Main.hs` and on `src/MasterSlave.hs` and it was taken from the example in the link below:
 
@@ -26,13 +42,3 @@ Notice that the masters here are called `builders` and the slaves `workers` sinc
 
 ### Kubernetes
 This repo was also used for Kubernetes experiments. Except for the attempt to deploy on Azure and not minikube that is described below the things are pretty simple. There is a `makefile`, there is a stack project with regular build and there are two `.yaml` files of kubernetes deployments (which are, surprisingly `workers.yaml` and `builders.yaml`, not `stack.yaml` or `package.yaml`)
-
-#### The incomplete attempt for deploying on AKS
-The last but most important incomplete part of the Kubernetes project is to run on **A**zure **K**ubernetes **S**ervice, and not on the local minikube based on Vbox. That attempt was done on this toy example and it is now the ***last commit*** of the branch ***actor_model***.
-
-The relevant things to notice on this incomplete mission are:
-1. The secret is not the same secret used on minikube.
-2. The same might apply to some other tools like the container-registry, docker image etc.
-3. There's already an existing AKS cluster on our Azure active directory and resource group. Oh yes, there's a chance we are still paying Azure money for this one...
-4. The Logging system might differ. I do not remember exactly how but I think I spent a few minutes to figure how to get the `stderr` from the Haskell code on AKS. 
-5. The reason this did not work eventually is a Cloud Haskell reason: There are some functions in the backend I used that works through UDP multicast that cannot apply on real Kubernetes cluster in the cloud. Check it out in the [Cloud Haskell page](https://github.com/Atidot/atidot/wiki/distributed-Process).
