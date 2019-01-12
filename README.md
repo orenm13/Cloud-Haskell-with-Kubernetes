@@ -41,4 +41,4 @@ There are 3 different models that can be find on 3 different branches of this re
 Notice that the masters here are called `builders` and the slaves `workers` since its not really a master slave model anymore when there are multiple masters (unlike the ancient Meereen, Yunkai and Astapor)
 
 ### Kubernetes
-This repo was also used for Kubernetes experiments. Except for the attempt to deploy on Azure and not minikube that is described below the things are pretty simple. There is a `makefile`, there is a stack project with regular build and there are two `.yaml` files of kubernetes deployments (which are, surprisingly `workers.yaml` and `builders.yaml`, not `stack.yaml` or `package.yaml`)
+This repo was also used for Kubernetes experiments. On any problem and isnufficient case I Would reccomend for the formal documentation of [Kubernetes](https://kubernetes.io/)
