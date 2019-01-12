@@ -1,0 +1,21 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: workers-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: work-test
+  template:
+    metadata:
+      name: workers-test
+      labels:
+        app: work-test
+        purpose: demonstrate-workers-on-kube
+    spec:
+      containers:
+      - name: cloud-haskell-test-workers
+        image: orenm13/test1
+        command: ["cloud-haskell-test-exe", "worker", "8081"]
+

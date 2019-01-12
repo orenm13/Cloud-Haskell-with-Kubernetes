@@ -1,0 +1,21 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: builders-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: build-test
+  template:
+    metadata:
+      name: builders-test
+      labels:
+        app: build-test
+        purpose: demonstrate-builders-on-kube
+    spec:
+      containers:
+      - name: cloud-haskell-test-builders
+        image: orenm13/test1
+        command: ["cloud-haskell-test-exe", "builder", "8080", "40", "140"]
+
