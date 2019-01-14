@@ -2,10 +2,8 @@
 
 This example was made to test common functions and utilities of both Cloud Haskell and Kubernetes.
 
-[Prime Factors Example](https://github.com/oren-atidot/cloud_haskell_test)
-
 ### Build
-Before you stert you need to check that you have the following installed: GHC, Stack (Haskell), Docker, VirtualBox, Minikube, Kubectl.
+Before you start you need to check that you have the following installed: GHC, Stack (Haskell), Docker, VirtualBox, Minikube, Kubectl.
 for further installation instructions you can check in google, matching this to the relevant OS.
 
 You can use the `makefile` to create docker image and Kubernetes deployments or use the same docker/Kubernetes commands Manually
